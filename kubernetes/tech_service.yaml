@@ -1,0 +1,148 @@
+#Service do node exporter
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '9100'
+spec:
+  selector:
+      app.kubernetes.io/component: exporter
+      app.kubernetes.io/name: node-exporter
+  ports:
+  - name: node-exporter
+    protocol: TCP
+    port: 9100
+    targetPort: 9100
+---
+
+#Service do kube state metrics
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: kube-state-metrics
+    app.kubernetes.io/version: v1.8.0
+  name: kube-state-metrics
+  namespace: kube-system
+spec:
+  clusterIP: None
+  ports:
+  - name: http-metrics
+    port: 8080
+    targetPort: http-metrics
+  - name: telemetry
+    port: 8081
+    targetPort: telemetry
+  selector:
+    app.kubernetes.io/name: kube-state-metrics
+---
+
+#Node Port do prometheus
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '9090'
+      prometheus.io/probe: 'true'
+spec:
+  selector: 
+    app: prometheus-server
+  type: NodePort  
+  ports:
+    - port: 8080  
+      targetPort: 9090 
+      nodePort: 30000
+---
+
+#NodePort IP grafana
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: default
+  annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port:   '9093'
+spec:
+  selector: 
+    app: alertmanager
+  type: LoadBalancer  
+  ports:
+    - port: 9093
+---
+
+#Cluster IP grafana
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: http-grafana
+  selector:
+    app: grafana
+  sessionAffinity: None
+  type: LoadBalancer
+---
+
+#Cluster IP clientes
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-api-clientes
+spec:
+  selector:
+    app: api-clientes
+  type: ClusterIP
+  ports:
+    - port: 5100
+      targetPort: 5100
+---
+
+
+#Cluster IP enderecos
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-api-enderecos
+spec:
+  selector:
+    app: api-enderecos
+  type: ClusterIP
+  ports:
+    - port: 5200
+      targetPort: 5200
+---
+
+#Cluster IP catalogo
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-api-catalogo
+spec:
+  selector:
+    app: api-catalogo
+  type: ClusterIP
+  ports:
+    - port: 5300
+      targetPort: 5300
+---
+
+#Cluster IP inventario
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-api-inventario
+spec:
+  selector:
+    app: api-inventario
+  type: ClusterIP
+  ports:
+    - port: 5400
+      targetPort: 5400
